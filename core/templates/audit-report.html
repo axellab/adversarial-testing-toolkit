@@ -1,0 +1,234 @@
+<!--
+  Adversarial audit report — HTML artifact template.
+
+  Used by the HTML channel in core/output-channels.md. A finding-producing skill fills the
+  two data blocks below and publishes the file via the Artifact tool. The file is
+  body-content only: the Artifact host wraps it in <!doctype><head><body> and adds a CSS
+  reset, so do NOT add those tags. Everything is inline (Artifact CSP blocks external hosts).
+
+  Fill these before publishing:
+    META      — one object describing the run.
+    FINDINGS  — one object per finding. severity ∈ Critical|High|Medium|Low.
+                dimension ∈ FUNC|SEC|RES|LLM|PLAN. taxonomy is the id string, e.g. "SEC-01".
+                line may be null. Any prose field may contain plain text (no HTML).
+
+  The script renders and wires severity/dimension/file/text filters with live counts. Keep
+  the <title> and favicon stable across redeploys of the same audit so it updates in place.
+-->
+
+<style>
+  :root {
+    --bg: #f7f7f8; --panel: #ffffff; --border: #e3e3e6; --text: #1a1a1c;
+    --muted: #6b6b70; --chip: #efeff1; --accent: #4f46e5;
+    --crit: #b42318; --crit-bg: #fee4e2; --high: #b54708; --high-bg: #fef0c7;
+    --med: #854d0e; --med-bg: #fef9c3; --low: #475467; --low-bg: #eef2f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a; --panel: #1e1e24; --border: #2f2f37; --text: #ececf1;
+      --muted: #9a9aa2; --chip: #2a2a31; --accent: #a5b4fc;
+      --crit: #ff9a8f; --crit-bg: #4a1712; --high: #ffbf7a; --high-bg: #452812;
+      --med: #ecd27a; --med-bg: #3d3410; --low: #b3c0d1; --low-bg: #232a33;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f7f8; --panel: #ffffff; --border: #e3e3e6; --text: #1a1a1c;
+    --muted: #6b6b70; --chip: #efeff1; --accent: #4f46e5;
+    --crit: #b42318; --crit-bg: #fee4e2; --high: #b54708; --high-bg: #fef0c7;
+    --med: #854d0e; --med-bg: #fef9c3; --low: #475467; --low-bg: #eef2f6;
+  }
+  :root[data-theme="dark"] {
+    --bg: #16161a; --panel: #1e1e24; --border: #2f2f37; --text: #ececf1;
+    --muted: #9a9aa2; --chip: #2a2a31; --accent: #a5b4fc;
+    --crit: #ff9a8f; --crit-bg: #4a1712; --high: #ffbf7a; --high-bg: #452812;
+    --med: #ecd27a; --med-bg: #3d3410; --low: #b3c0d1; --low-bg: #232a33;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  header h1 { font-size: 22px; margin: 0 0 4px; }
+  header .sub { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+  .headline { background: var(--panel); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 14px;
+    margin: 0 0 18px; }
+  .scope { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+
+  .tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+  .tile { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; min-width: 92px; }
+  .tile .n { font-size: 20px; font-weight: 700; }
+  .tile .l { font-size: 12px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .04em; }
+
+  .filters { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; margin: 0 0 18px; display: grid; gap: 12px; }
+  .filters .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .filters .label { font-size: 12px; color: var(--muted); min-width: 74px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  .chip { border: 1px solid var(--border); background: var(--chip); color: var(--text);
+    border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer;
+    user-select: none; }
+  .chip[aria-pressed="true"] { border-color: var(--accent); outline: 1px solid var(--accent); }
+  select, input[type="search"] { background: var(--chip); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; font: inherit; }
+  input[type="search"] { flex: 1; min-width: 160px; }
+
+  .count { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+  .finding { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin: 0 0 12px; }
+  .finding h3 { font-size: 16px; margin: 0 0 8px; display: flex; gap: 8px;
+    align-items: baseline; flex-wrap: wrap; }
+  .sev { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;
+    text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+  .sev.Critical { color: var(--crit); background: var(--crit-bg); }
+  .sev.High { color: var(--high); background: var(--high-bg); }
+  .sev.Medium { color: var(--med); background: var(--med-bg); }
+  .sev.Low { color: var(--low); background: var(--low-bg); }
+  .tax { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; }
+  .where { font-size: 12.5px; color: var(--muted); font-family: ui-monospace, monospace;
+    margin: 0 0 8px; word-break: break-all; }
+  .finding dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+  .finding dt { color: var(--muted); font-size: 12px; text-transform: uppercase;
+    letter-spacing: .03em; padding-top: 2px; white-space: nowrap; }
+  .finding dd { margin: 0; }
+  .empty { color: var(--muted); text-align: center; padding: 40px; }
+  footer { color: var(--muted); font-size: 12px; margin-top: 28px;
+    border-top: 1px solid var(--border); padding-top: 12px; }
+  .overflow { overflow-x: auto; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 id="title">Adversarial audit</h1>
+    <p class="sub" id="sub"></p>
+    <div class="headline"><strong>Headline:</strong> <span id="headline"></span>
+      <p class="scope" id="scope"></p>
+    </div>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="filters">
+    <div class="row"><span class="label">Severity</span><span id="sevFilters"></span></div>
+    <div class="row"><span class="label">Dimension</span><span id="dimFilters"></span></div>
+    <div class="row"><span class="label">File</span>
+      <select id="fileFilter"><option value="">All files</option></select>
+      <input type="search" id="search" placeholder="Search title / scenario…" />
+    </div>
+  </div>
+
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+  // ==== DATA: the skill fills these two blocks ============================================
+  const META = {
+    artifact: "TARGET NAME",       // e.g. "ShopMini API — src/"
+    date: "YYYY-MM-DD",
+    scope: "What was examined and what was NOT.",
+    dimensions: "FUNC · SEC · RES · LLM",
+    headline: "The single most important sentence."
+  };
+  const FINDINGS = [
+    // {
+    //   taxonomy: "SEC-01", severity: "Critical", dimension: "SEC",
+    //   title: "SQL injection in user search",
+    //   file: "src/users.js", line: 10,
+    //   what: "…", scenario: "…", impact: "Critical", likelihood: "Likely",
+    //   evidence: "…", recommendation: "…", confidence: "Confirmed"
+    // },
+  ];
+  // =======================================================================================
+
+  const SEVS = ["Critical", "High", "Medium", "Low"];
+  const DIMS = ["FUNC", "SEC", "RES", "LLM", "PLAN"];
+  const state = { sev: new Set(SEVS), dim: new Set(DIMS), file: "", q: "" };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+  function init() {
+    $("title").textContent = "Adversarial audit — " + (META.artifact || "");
+    $("sub").textContent = (META.dimensions ? META.dimensions + "  ·  " : "") + (META.date || "");
+    $("headline").textContent = META.headline || "";
+    $("scope").textContent = META.scope ? "Scope: " + META.scope : "";
+    document.title = "Audit — " + (META.artifact || "report");
+
+    // Severity tiles (totals)
+    const counts = SEVS.map(s => FINDINGS.filter(f => f.severity === s).length);
+    $("tiles").innerHTML = SEVS.map((s, i) =>
+      `<div class="tile"><div class="n" style="color:var(--${s.slice(0,4).toLowerCase()==='crit'?'crit':s.toLowerCase()})">${counts[i]}</div><div class="l">${s}</div></div>`
+    ).join("") + `<div class="tile"><div class="n">${FINDINGS.length}</div><div class="l">Total</div></div>`;
+
+    // Filter chips
+    $("sevFilters").innerHTML = SEVS.map(s => chip("sev", s, counts[SEVS.indexOf(s)])).join("");
+    const dimCounts = DIMS.map(d => FINDINGS.filter(f => f.dimension === d).length);
+    $("dimFilters").innerHTML = DIMS.filter((d, i) => dimCounts[i] > 0).map(d => chip("dim", d, dimCounts[DIMS.indexOf(d)])).join("");
+
+    // File dropdown
+    const files = [...new Set(FINDINGS.map(f => f.file).filter(Boolean))].sort();
+    $("fileFilter").insertAdjacentHTML("beforeend", files.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join(""));
+
+    document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", onChip));
+    $("fileFilter").addEventListener("change", e => { state.file = e.target.value; render(); });
+    $("search").addEventListener("input", e => { state.q = e.target.value.toLowerCase(); render(); });
+
+    $("footer").textContent = "Generated by the Adversarial Testing Toolkit · severity = Impact × Likelihood · " + FINDINGS.length + " findings.";
+    render();
+  }
+
+  function chip(kind, val, n) {
+    return `<span class="chip" data-kind="${kind}" data-val="${val}" aria-pressed="true">${val}${n != null ? ` <span style="color:var(--muted)">${n}</span>` : ""}</span>`;
+  }
+  function onChip(e) {
+    const { kind, val } = e.currentTarget.dataset;
+    const set = state[kind];
+    if (set.has(val)) set.delete(val); else set.add(val);
+    e.currentTarget.setAttribute("aria-pressed", set.has(val));
+    render();
+  }
+
+  const rank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+  function render() {
+    let items = FINDINGS.filter(f =>
+      state.sev.has(f.severity) &&
+      state.dim.has(f.dimension) &&
+      (!state.file || f.file === state.file) &&
+      (!state.q || (`${f.title} ${f.scenario} ${f.what} ${f.taxonomy}`).toLowerCase().includes(state.q))
+    );
+    items.sort((a, b) => (rank[a.severity] - rank[b.severity]) || 0);
+
+    $("count").textContent = `Showing ${items.length} of ${FINDINGS.length} findings`;
+    $("list").innerHTML = items.length ? items.map(card).join("") :
+      `<div class="empty">No findings match the current filters.</div>`;
+  }
+
+  function card(f) {
+    const where = [f.file, f.line != null ? "line " + f.line : ""].filter(Boolean).join(" · ");
+    const row = (label, val) => val ? `<dt>${label}</dt><dd>${esc(val)}</dd>` : "";
+    return `<article class="finding">
+      <h3><span class="sev ${esc(f.severity)}">${esc(f.severity)}</span>
+        <span>${esc(f.title)}</span>
+        <span class="tax">${esc(f.taxonomy)}</span></h3>
+      ${where ? `<div class="where">${esc(where)}</div>` : ""}
+      <dl>
+        ${row("What", f.what)}
+        ${row("Scenario", f.scenario)}
+        ${row("Impact", [f.impact, f.likelihood].filter(Boolean).join(" / "))}
+        ${row("Evidence", f.evidence)}
+        ${row("Fix", f.recommendation)}
+        ${row("Confidence", f.confidence)}
+      </dl>
+    </article>`;
+  }
+
+  init();
+</script>

@@ -1,0 +1,7 @@
+# Marker written by the SessionStart hook into a consuming project (not this repo, but
+# harmless to ignore here too).
+.claude/.adversarial-testing-root
+.claude/state/
+
+# Generated audit outputs (File channel).
+reports/

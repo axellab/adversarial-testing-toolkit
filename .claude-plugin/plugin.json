@@ -1,0 +1,26 @@
+{
+  "name": "adversarial-testing",
+  "displayName": "Adversarial Testing Toolkit",
+  "description": "Red-teaming for apps, systems, prompts, specs and plans: weak-point and quality analysis, stack-aware test generation, a persistent adversarial mode, and a multi-agent deep audit with adversarial verification. Composes with spec-driven development.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Axel Labruna",
+    "email": "axel.labruna@live.com.ar"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/axellab/adversarial-testing-toolkit",
+  "repository": "https://github.com/axellab/adversarial-testing-toolkit",
+  "keywords": [
+    "adversarial-testing",
+    "red-team",
+    "security",
+    "testing",
+    "quality",
+    "resilience",
+    "llm-robustness",
+    "spec-driven-development"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json"
+}

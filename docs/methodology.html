@@ -1,0 +1,425 @@
+<style>
+  /* ===== Tokens ============================================================ */
+  :root {
+    --paper: #eef0f4; --surface: #ffffff; --surface-2: #f6f7f9;
+    --ink: #14161d; --slate: #59616f; --faint: #878f9d; --line: #d9dde4;
+    --signal: #c8362b; --signal-soft: #f6e3e0;
+    --crit: #b42318; --high: #b25b00; --med: #8a6d0e; --low: #4a5568;
+    --crit-bg: #fbe6e3; --high-bg: #fbeeda; --med-bg: #f7f0d4; --low-bg: #e9edf2;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --maxw: 860px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0e1016; --surface: #161923; --surface-2: #1b1f2a;
+      --ink: #e9ebf1; --slate: #99a2b2; --faint: #6c7482; --line: #262b37;
+      --signal: #ff6d5c; --signal-soft: #2c1512;
+      --crit: #ff8a7d; --high: #f0b25f; --med: #ded08a; --low: #aeb8c8;
+      --crit-bg: #3a1512; --high-bg: #37280f; --med-bg: #322c10; --low-bg: #1f242f;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #eef0f4; --surface: #ffffff; --surface-2: #f6f7f9;
+    --ink: #14161d; --slate: #59616f; --faint: #878f9d; --line: #d9dde4;
+    --signal: #c8362b; --signal-soft: #f6e3e0;
+    --crit: #b42318; --high: #b25b00; --med: #8a6d0e; --low: #4a5568;
+    --crit-bg: #fbe6e3; --high-bg: #fbeeda; --med-bg: #f7f0d4; --low-bg: #e9edf2;
+  }
+  :root[data-theme="dark"] {
+    --paper: #0e1016; --surface: #161923; --surface-2: #1b1f2a;
+    --ink: #e9ebf1; --slate: #99a2b2; --faint: #6c7482; --line: #262b37;
+    --signal: #ff6d5c; --signal-soft: #2c1512;
+    --crit: #ff8a7d; --high: #f0b25f; --med: #ded08a; --low: #aeb8c8;
+    --crit-bg: #3a1512; --high-bg: #37280f; --med-bg: #322c10; --low-bg: #1f242f;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px 96px; }
+
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--signal); font-weight: 600; }
+  h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.05; letter-spacing: -.02em;
+    margin: 14px 0 0; text-wrap: balance; font-weight: 680; }
+  h2 { font-size: 22px; letter-spacing: -.01em; margin: 0; text-wrap: balance; font-weight: 660; }
+  h3 { font-size: 15px; margin: 0 0 4px; font-weight: 640; }
+  p { margin: 10px 0 0; }
+  a { color: var(--signal); }
+  .lead { font-size: clamp(17px, 2.4vw, 19px); color: var(--slate); margin-top: 16px;
+    max-width: 62ch; }
+  .mono { font-family: var(--mono); }
+
+  /* ===== Hero ============================================================= */
+  header { position: relative; padding: 72px 0 40px; border-bottom: 1px solid var(--line);
+    overflow: hidden; }
+  header::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(-45deg, transparent 0 22px,
+        color-mix(in srgb, var(--signal) 6%, transparent) 22px 23px);
+    -webkit-mask-image: linear-gradient(to bottom, black, transparent 62%);
+    mask-image: linear-gradient(to bottom, black, transparent 62%); }
+  header > * { position: relative; z-index: 1; }
+  .thesis { margin-top: 26px; border-left: 3px solid var(--signal);
+    background: var(--surface); padding: 16px 18px; border-radius: 0 8px 8px 0;
+    font-size: 17px; }
+  .thesis b { color: var(--ink); }
+  .meta { margin-top: 22px; font-family: var(--mono); font-size: 12px; color: var(--faint);
+    display: flex; flex-wrap: wrap; gap: 6px 16px; }
+
+  /* ===== Section scaffolding ============================================= */
+  section { padding-top: 52px; }
+  .shead { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
+  .num { font-family: var(--mono); font-size: 13px; color: var(--signal); font-weight: 600;
+    border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; flex: none; }
+  .stitle .k { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 3px; }
+
+  .grid { display: grid; gap: 12px; }
+  @media (min-width: 620px) { .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 15px 16px; }
+  .card p { color: var(--slate); font-size: 14px; }
+  .card .tag { font-family: var(--mono); font-size: 11px; color: var(--signal);
+    letter-spacing: .04em; }
+
+  .surfaces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip { font-family: var(--mono); font-size: 12.5px; border: 1px solid var(--line);
+    background: var(--surface); border-radius: 999px; padding: 6px 13px; color: var(--ink); }
+  .chip b { color: var(--signal); }
+
+  /* ===== Core diagram ==================================================== */
+  .core { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px; }
+  .core-top { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    padding: 4px 0 16px; }
+  .core-pill { font-family: var(--mono); font-size: 12px; background: var(--signal-soft);
+    color: var(--signal); border: 1px solid color-mix(in srgb, var(--signal) 28%, transparent);
+    border-radius: 7px; padding: 6px 10px; }
+  .core-rule { text-align: center; font-size: 13px; color: var(--faint); font-family: var(--mono);
+    padding: 8px 0; position: relative; }
+  .core-rule::before, .core-rule::after { content: ""; position: absolute; top: 50%;
+    width: 26%; height: 1px; background: var(--line); }
+  .core-rule::before { left: 0; } .core-rule::after { right: 0; }
+  .core-bottom { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding-top: 14px; }
+  .core-node { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line);
+    border-radius: 7px; padding: 6px 10px; color: var(--slate); background: var(--surface-2); }
+
+  /* ===== Dimensions + matrix ============================================= */
+  .dims { display: grid; gap: 8px; }
+  .dim { display: grid; grid-template-columns: 58px 1fr; gap: 12px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 11px 14px; }
+  .dim .id { font-family: var(--mono); font-weight: 700; font-size: 13px; text-align: center;
+    padding: 3px 0; border-radius: 5px; }
+  .dim .id.FUNC { color: var(--low); background: var(--low-bg); }
+  .dim .id.SEC  { color: var(--crit); background: var(--crit-bg); }
+  .dim .id.RES  { color: var(--high); background: var(--high-bg); }
+  .dim .id.LLM  { color: var(--med); background: var(--med-bg); }
+  .dim .id.PLAN { color: var(--signal); background: var(--signal-soft); }
+  .dim .d { font-size: 14px; color: var(--slate); }
+  .dim .d b { color: var(--ink); font-weight: 600; }
+
+  .matrix-wrap { margin-top: 16px; overflow-x: auto; }
+  table.matrix { border-collapse: collapse; font-family: var(--mono); font-size: 12px;
+    min-width: 380px; width: 100%; }
+  table.matrix caption { text-align: left; color: var(--faint); font-family: var(--mono);
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding-bottom: 8px; }
+  table.matrix th, table.matrix td { border: 1px solid var(--line); padding: 8px 10px;
+    text-align: center; }
+  table.matrix th { color: var(--slate); font-weight: 600; background: var(--surface-2); }
+  td.sev { font-weight: 700; }
+  td.sev.c { color: var(--crit); background: var(--crit-bg); }
+  td.sev.h { color: var(--high); background: var(--high-bg); }
+  td.sev.m { color: var(--med); background: var(--med-bg); }
+  td.sev.l { color: var(--low); background: var(--low-bg); }
+
+  /* ===== Tiers =========================================================== */
+  .tier { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 15px 16px; }
+  .tier .wt { font-family: var(--mono); font-size: 11px; color: var(--faint); white-space: nowrap;
+    border: 1px solid var(--line); border-radius: 6px; padding: 3px 7px; align-self: center; }
+  .tier code { font-family: var(--mono); font-size: 13px; color: var(--signal); }
+  .tier p { font-size: 14px; color: var(--slate); }
+
+  /* ===== Pipeline (signature) ============================================ */
+  .pipe { display: grid; gap: 0; }
+  .stage { position: relative; padding: 0 0 22px 34px; }
+  .stage::before { content: ""; position: absolute; left: 10px; top: 4px; width: 11px; height: 11px;
+    border-radius: 50%; background: var(--surface); border: 2px solid var(--signal); z-index: 1; }
+  .stage::after { content: ""; position: absolute; left: 15px; top: 12px; bottom: -4px; width: 1px;
+    background: var(--line); }
+  .stage:last-child { padding-bottom: 0; }
+  .stage:last-child::after { display: none; }
+  .stage.key::before { background: var(--signal); box-shadow: 0 0 0 4px var(--signal-soft); }
+  .stage .sname { font-family: var(--mono); font-size: 13px; font-weight: 640; }
+  .stage .sname .flag { color: var(--signal); font-size: 11px; letter-spacing: .08em; margin-left: 8px; }
+  .stage p { font-size: 14px; color: var(--slate); margin-top: 4px; }
+  .fan { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .fan span { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line);
+    border-radius: 6px; padding: 3px 8px; color: var(--slate); background: var(--surface-2); }
+
+  /* ===== SDD timeline ==================================================== */
+  .flow { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .flow .step { flex: 1 1 120px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 9px; padding: 12px; min-width: 120px; }
+  .flow .step .s { font-family: var(--mono); font-size: 11px; color: var(--faint);
+    text-transform: uppercase; letter-spacing: .1em; }
+  .flow .step .n { font-weight: 640; margin-top: 3px; font-size: 15px; }
+  .flow .step.attack { border-color: color-mix(in srgb, var(--signal) 45%, var(--line));
+    background: var(--signal-soft); }
+  .flow .step.attack .n { color: var(--signal); }
+  .flow .step .why { font-size: 12.5px; color: var(--slate); margin-top: 4px; }
+
+  /* ===== Proof =========================================================== */
+  .proof { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 10px 26px; }
+  .stat .n { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .stat .l { font-size: 12.5px; color: var(--slate); }
+  .stat .n.ok { color: var(--signal); }
+  .callout { margin-top: 16px; font-size: 14px; color: var(--slate);
+    border-top: 1px dashed var(--line); padding-top: 14px; }
+  .callout b { color: var(--ink); }
+
+  /* ===== Safety / footer ================================================= */
+  .safety { margin-top: 40px; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 18px; font-size: 14px; color: var(--slate); }
+  .safety b { color: var(--ink); }
+  footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px; color: var(--faint); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .stage.key::before { animation: pulse 2.6s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 4px var(--signal-soft); }
+      50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--signal) 12%, transparent); } }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Adversarial Testing Toolkit · Metodología</div>
+    <h1>Romperlo antes<br>que lo rompa la realidad</h1>
+    <p class="lead">Cómo el framework aplica el red-teaming — la disciplina usada para
+      quebrar modelos — a código, sistemas, prompts y planes de implementación.</p>
+    <div class="thesis">
+      La idea única: <b>asumir que algo será usado del peor modo plausible y encontrar dónde
+      eso lo rompe</b> — con escenario concreto, severidad y test de regresión. No una opinión;
+      una falla reproducible.
+    </div>
+    <div class="meta">
+      <span>6 agentes</span><span>7 skills</span><span>1 núcleo compartido</span>
+      <span>4 dimensiones</span><span>recall 27/27 medido</span>
+    </div>
+  </header>
+
+  <!-- 1 · Superficies -->
+  <section>
+    <div class="shead">
+      <span class="num">01</span>
+      <div class="stitle"><span class="k">Una disciplina, cuatro targets</span>
+        <h2>La misma forma de pensar, apuntada distinto</h2></div>
+    </div>
+    <p style="color:var(--slate);max-width:62ch">El adversarial testing no cambia según el
+      objetivo — cambia dónde se apunta. El framework lo extrapola desde el quiebre de modelos
+      hacia cuatro superficies, cada una con su lente de fallas:</p>
+    <div class="surfaces">
+      <span class="chip"><b>Código</b> · FUNC / SEC / RES</span>
+      <span class="chip"><b>Sistemas</b> · RES bajo carga y fallo</span>
+      <span class="chip"><b>Prompts &amp; agentes LLM</b> · LLM</span>
+      <span class="chip"><b>Specs &amp; planes</b> · PLAN</span>
+    </div>
+  </section>
+
+  <!-- 2 · Núcleo -->
+  <section>
+    <div class="shead">
+      <span class="num">02</span>
+      <div class="stitle"><span class="k">Un núcleo, muchos consumidores</span>
+        <h2>La metodología vive una sola vez</h2></div>
+    </div>
+    <p style="color:var(--slate);max-width:62ch">Nada sobre fallas, severidad o reporte se
+      duplica. Mejorar el núcleo mejora a todos los agentes y skills a la vez.</p>
+    <div class="core" style="margin-top:16px">
+      <div class="core-top">
+        <span class="core-pill">failure-taxonomy · qué buscar</span>
+        <span class="core-pill">report-format · cómo pesar y reportar</span>
+        <span class="core-pill">adversarial-mindset · cómo pensar</span>
+        <span class="core-pill">stack-detection · detectar antes de testear</span>
+        <span class="core-pill">output-channels · dónde entregar</span>
+      </div>
+      <div class="core-rule">referenciado, nunca copiado ▾</div>
+      <div class="core-bottom">
+        <span class="core-node">redteam-critic</span>
+        <span class="core-node">weakpoint-scout</span>
+        <span class="core-node">security-auditor</span>
+        <span class="core-node">resilience-auditor</span>
+        <span class="core-node">llm-robustness-auditor</span>
+        <span class="core-node">test-engineer</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Mindset -->
+  <section>
+    <div class="shead">
+      <span class="num">03</span>
+      <div class="stitle"><span class="k">El modo de pensar</span>
+        <h2>Técnicas para generar ataques</h2></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card"><span class="tag">assumptions</span>
+        <h3>Invertir cada supuesto</h3>
+        <p>“El input viene validado”, “el servicio siempre está arriba”. Listarlos y violar cada uno.</p></div>
+      <div class="card"><span class="tag">boundaries</span>
+        <h3>Empujar a los bordes</h3>
+        <p>Cero, uno, muchos, vacío, negativo, malformado, duplicado, fuera de orden.</p></div>
+      <div class="card"><span class="tag">trust</span>
+        <h3>Seguir las fronteras de confianza</h3>
+        <p>Dónde un dato no confiable cruza a un intérprete, tool, BD, modelo u otro usuario.</p></div>
+      <div class="card"><span class="tag">dependencies</span>
+        <h3>Matar las dependencias</h3>
+        <p>Asumir que todo lo externo está lento, caído o mintiendo. Trazar qué pasa entonces.</p></div>
+      <div class="card"><span class="tag">time / order</span>
+        <h3>Romper tiempo y orden</h3>
+        <p>¿Y si corre dos veces? ¿A medias? ¿Concurrente? ¿Tras un reinicio? ¿Nunca?</p></div>
+      <div class="card"><span class="tag">threats</span>
+        <h3>Pensar como cada amenaza</h3>
+        <p>Usuario con datos raros, atacante motivado, bot, insider. Uno por uno.</p></div>
+    </div>
+  </section>
+
+  <!-- 4 · Dimensiones + severidad -->
+  <section>
+    <div class="shead">
+      <span class="num">04</span>
+      <div class="stitle"><span class="k">Qué buscar · cómo pesar</span>
+        <h2>Cinco dimensiones, una regla de severidad</h2></div>
+    </div>
+    <div class="dims">
+      <div class="dim"><span class="id FUNC">FUNC</span><span class="d"><b>Corrección funcional</b> — bordes, entrada inválida, idempotencia, redondeo de dinero, concurrencia.</span></div>
+      <div class="dim"><span class="id SEC">SEC</span><span class="d"><b>Seguridad</b> — inyección, authZ/authN, secretos, SSRF, exposición de datos, rate limiting.</span></div>
+      <div class="dim"><span class="id RES">RES</span><span class="d"><b>Resiliencia &amp; performance</b> — timeouts, fallo de dependencias, carga, leaks, fallo parcial, observabilidad.</span></div>
+      <div class="dim"><span class="id LLM">LLM</span><span class="d"><b>Robustez LLM</b> — inyección de prompt, jailbreaks, exfiltración, abuso de tools, grounding, coste.</span></div>
+      <div class="dim"><span class="id PLAN">PLAN</span><span class="d"><b>Specs &amp; planes</b> — ambigüedad, supuestos, requisitos faltantes/en conflicto, criterios no testeables.</span></div>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <caption>Severidad = Impacto × Probabilidad · nunca por categoría sola</caption>
+        <thead><tr><th>Impacto ↓ / Prob →</th><th>Likely</th><th>Possible</th><th>Unlikely</th></tr></thead>
+        <tbody>
+          <tr><th>Critical</th><td class="sev c">Critical</td><td class="sev c">Critical</td><td class="sev h">High</td></tr>
+          <tr><th>High</th><td class="sev c">Critical</td><td class="sev h">High</td><td class="sev m">Medium</td></tr>
+          <tr><th>Medium</th><td class="sev h">High</td><td class="sev m">Medium</td><td class="sev l">Low</td></tr>
+          <tr><th>Low</th><td class="sev m">Medium</td><td class="sev l">Low</td><td class="sev l">Low</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5 · Tiers -->
+  <section>
+    <div class="shead">
+      <span class="num">05</span>
+      <div class="stitle"><span class="k">Tres intensidades</span>
+        <h2>La misma disciplina, dosificada</h2></div>
+    </div>
+    <div class="grid" style="gap:10px">
+      <div class="tier"><span class="wt">fondo</span>
+        <div><h3><code>/adversarial-mode on</code> — persistente</h3>
+          <p>Un hook determinístico anexa la sección “cómo puede fallar esto” a cada respuesta. Adversarial testing como hábito.</p></div></div>
+      <div class="tier"><span class="wt">focalizado</span>
+        <div><h3><code>/redteam &lt;artefacto&gt;</code> — crítico único</h3>
+          <p>Un agente ataca un solo artefacto (plan, spec, código, prompt) y devuelve solo el análisis de fallas.</p></div></div>
+      <div class="tier"><span class="wt">exhaustivo</span>
+        <div><h3><code>/deep-audit &lt;target&gt;</code> — multi-agente</h3>
+          <p>Cuatro auditores en paralelo, un dimensión cada uno, con verificación adversarial antes de sintetizar.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · Pipeline -->
+  <section>
+    <div class="shead">
+      <span class="num">06</span>
+      <div class="stitle"><span class="k">El pipeline del deep-audit</span>
+        <h2>Amplitud por fan-out, confianza por el escéptico</h2></div>
+    </div>
+    <div class="pipe">
+      <div class="stage">
+        <div class="sname">1 · Fan-out en paralelo</div>
+        <p>Los auditores relevantes corren a la vez sobre el mismo target, cada uno cargando el núcleo.</p>
+        <div class="fan"><span>weakpoint-scout</span><span>security-auditor</span><span>resilience-auditor</span><span>llm-robustness-auditor</span></div>
+      </div>
+      <div class="stage">
+        <div class="sname">2 · Consolidar &amp; deduplicar</div>
+        <p>Los ids de taxonomía compartidos permiten fusionar el mismo hallazgo visto por dos lentes en uno.</p>
+      </div>
+      <div class="stage key">
+        <div class="sname">3 · Verificación adversarial <span class="flag">EL PASO CLAVE</span></div>
+        <p>Cada Critical/High se red-teamea contra sí mismo (“intentá refutarlo: ¿es real? ¿la severidad es correcta?”) para descartar falsos positivos y corregir severidades infladas.</p>
+      </div>
+      <div class="stage">
+        <div class="sname">4 · Sintetizar</div>
+        <p>Un único reporte ordenado por severidad — escenario + fix + test de regresión + blind spots honestos.</p>
+      </div>
+      <div class="stage">
+        <div class="sname">5 · Enrutar a canales</div>
+        <p>El mismo hallazgo, re-renderizado: terminal · archivo · artifact HTML · comentarios de PR.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · SDD -->
+  <section>
+    <div class="shead">
+      <span class="num">07</span>
+      <div class="stitle"><span class="k">Temprano en el ciclo</span>
+        <h2>Atacar donde arreglar es más barato</h2></div>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="s">Spec Kit</div><div class="n">spec</div></div>
+      <div class="step attack"><div class="s">/spec-attack</div><div class="n">atacar el plan</div><div class="why">PLAN: ambigüedad, supuestos, requisitos faltantes</div></div>
+      <div class="step"><div class="s">implementar</div><div class="n">código</div></div>
+      <div class="step attack"><div class="s">/deep-audit</div><div class="n">atacar el código</div><div class="why">FUNC · SEC · RES · LLM sobre código real</div></div>
+      <div class="step"><div class="s">→</div><div class="n">release</div></div>
+    </div>
+    <p style="color:var(--slate);max-width:62ch">Componer con spec-driven development es el salto
+      de calidad extra: una ambigüedad muerta en la spec no se paga como bug en producción.</p>
+  </section>
+
+  <!-- 8 · Prueba -->
+  <section>
+    <div class="shead">
+      <span class="num">08</span>
+      <div class="stitle"><span class="k">Medido, no aspiracional</span>
+        <h2>La prueba contra bugs sembrados</h2></div>
+    </div>
+    <div class="proof">
+      <div class="stats">
+        <div class="stat"><div class="n ok">27/27</div><div class="l">bugs sembrados detectados<br>(FUNC 8 · SEC 9 · RES 6 · LLM 4)</div></div>
+        <div class="stat"><div class="n">0</div><div class="l">falsos positivos<br>en la corrida de seguridad</div></div>
+        <div class="stat"><div class="n">4</div><div class="l">emergentes legítimos<br>fuera de los sembrados</div></div>
+      </div>
+      <div class="callout">
+        La verificación adversarial <b>pagó</b>: refutó el escenario “sin token devuelve SSN”
+        (en realidad da 500; el path real es <span class="mono">token basura</span>) y confirmó
+        por ejecución la caché envenenada. Sin ese paso, el reporte habría llevado un escenario
+        incorrecto.
+      </div>
+    </div>
+  </section>
+
+  <div class="safety">
+    <b>Seguridad —</b> análisis y testing adversarial <b>solamente</b>. Nunca ataques reales,
+    exfiltración ni armado de exploits. El output es un sistema más fuerte, no uno comprometido.
+    Y honestidad de cobertura: lo que no se revisó se declara como <span class="mono">blind spot</span>,
+    nunca se implica cobertura que no se hizo.
+  </div>
+
+  <footer>Adversarial Testing Toolkit · metodología · desarrollado en repo, empaquetable como plugin de Claude Code</footer>
+</div>

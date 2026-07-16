@@ -1,0 +1,19 @@
+{
+  "name": "adversarial-testing-tools",
+  "owner": {
+    "name": "Axel Labruna",
+    "email": "axel.labruna@live.com.ar"
+  },
+  "description": "Adversarial testing & quality toolkit for Claude Code.",
+  "plugins": [
+    {
+      "name": "adversarial-testing",
+      "source": "./",
+      "description": "Red-teaming for apps, systems, prompts, specs and plans, plus stack-aware test generation and a multi-agent deep audit.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "homepage": "https://github.com/axellab/adversarial-testing-toolkit",
+      "keywords": ["adversarial-testing", "red-team", "security", "testing", "quality"]
+    }
+  ]
+}
